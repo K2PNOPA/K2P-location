@@ -1,0 +1,109 @@
+local renting = false
+
+-- Afficher le menu de location de voiture
+function ShowRentalMenu()
+    local elements = {}
+
+    -- Ajouter les véhicules à la liste du menu
+    for _, vehicle in ipairs(Config.Vehicules) do
+        table.insert(elements, {label = vehicle, value = vehicle})
+    end
+
+    local vehicleIndex = 1
+    local durationIndex = 1
+
+    -- Afficher le menu de location
+    ESX.UI.Menu.Open(
+        'default', GetCurrentResourceName(), 'rental_menu',
+        {
+            title    = 'Location de voiture',
+            align    = 'bottom-right',
+            elements = elements,
+        },
+        function(data, menu)
+            vehicleIndex = data.current.value
+
+            local durationElements = {}
+
+            -- Ajouter les durées de location à la liste du sous-menu
+            for _, duration in ipairs(Config.DureesLocation) do
+                table.insert(durationElements, {label = duration.name, value = duration.time})
+            end
+
+            -- Afficher le sous-menu pour choisir la durée
+            ESX.UI.Menu.Open(
+                'default', GetCurrentResourceName(), 'duration_menu',
+                {
+                    title    = 'Choisir la durée',
+                    align    = 'bottom-right',
+                    elements = durationElements,
+                },
+                function(data2, menu2)
+                    durationIndex = data2.current.value
+
+                    local price = CalculateRentalPrice(vehicleIndex, durationIndex)
+
+                    -- Ajouter ici la logique pour demander au serveur de traiter la location
+                    TriggerServerEvent('locationvoiture:achat', vehicleIndex, durationIndex, price)
+
+                    menu2.close()
+                    menu.close()
+                end,
+                function(data2, menu2)
+                    menu2.close()
+                end
+            )
+        end,
+        function(data, menu)
+            menu.close()
+        end
+    )
+end
+
+-- Calculer le prix de la location
+function CalculateRentalPrice(vehicleIndex, durationIndex)
+    -- Ajoutez votre logique de calcul de prix ici
+    -- Vous pouvez utiliser les informations des tableaux Config.Vehicules et Config.DureesLocation
+
+    -- Exemple : prix basé sur un montant fixe pour chaque véhicule et durée
+    local basePrice = Config.PrixBase
+    local vehiclePrice = basePrice * (vehicleIndex * 2) -- Prix différent pour chaque véhicule
+    local durationPrice = Config.DureesLocation[durationIndex].time * 5 -- Prix différent pour chaque heure
+
+    return vehiclePrice + durationPrice
+end
+
+-- Charger le PNJ de location de voiture
+Citizen.CreateThread(function()
+    local npc = nil
+
+    RequestModel("s_m_m_highsec_01") -- Modèle du PNJ (à remplacer par le modèle souhaité)
+    while not HasModelLoaded("s_m_m_highsec_01") do
+        Wait(500)
+    end
+
+    while true do
+        Wait(0)
+        local playerPed = GetPlayerPed(-1)
+        local playerCoords = GetEntityCoords(playerPed)
+        local distance = GetDistanceBetweenCoords(playerCoords, Config.NPCCoords, true)
+
+        if not DoesEntityExist(npc) then
+            npc = CreatePed(4, "s_m_m_highsec_01", Config.NPCCoords.x, Config.NPCCoords.y, Config.NPCCoords.z, 0.0, false, true)
+            SetEntityInvincible(npc, true) -- Rendre le PNJ immortel
+            TaskStartScenarioInPlace(npc, "WORLD_HUMAN_STAND_IMPATIENT", 0, true)
+        end
+
+        -- Afficher le menu lorsque le joueur est à proximité du PNJ
+        if distance < 3.0 then
+            ESX.ShowHelpNotification("Appuyez sur ~INPUT_CONTEXT~ pour louer une voiture")
+            if IsControlJustReleased(0, 38) and not renting then -- Touche "E" pour interagir
+                renting = true
+                ShowRentalMenu()
+            end
+        else
+            renting = false
+        end
+    end
+end)
+

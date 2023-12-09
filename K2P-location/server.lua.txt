@@ -1,0 +1,16 @@
+RegisterServerEvent('locationvoiture:achat')
+AddEventHandler('locationvoiture:achat', function(vehicleIndex, durationIndex, price)
+    local xPlayer = ESX.GetPlayerFromId(source)
+
+    -- Vérifier si le joueur a assez d'argent
+    if xPlayer.getMoney() >= price then
+        -- Retirer l'argent du joueur
+        xPlayer.removeMoney(price)
+
+        -- Ajouter la logique pour donner au joueur le véhicule (créer un véhicule, etc.)
+
+        TriggerClientEvent('locationvoiture:notification', source, 'Véhicule loué pour ' .. Config.DureesLocation[durationIndex].name .. ' pour ' .. price .. '$')
+    else
+        TriggerClientEvent('locationvoiture:notification', source, 'Fonds insuffisants pour louer le véhicule.')
+    end
+end)

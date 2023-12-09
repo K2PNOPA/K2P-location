@@ -1,0 +1,30 @@
+Config = {}
+
+-- Coordonnées du PNJ
+Config.NPCCoords = vector3(123.45, -456.78, 78.90)
+
+-- Paramètres de configuration ici, par exemple :
+Config.PrixBase = 5000
+Config.Vehicules = {
+    "adder",
+    "zentorno",
+    "comet2",
+    -- Ajoutez d'autres noms de véhicules si nécessaire
+}
+
+Config.DureesLocation = {
+    {name = "1 heure", time = 60},
+    {name = "3 heures", time = 180},
+    {name = "24 heures", time = 1440},
+}
+
+-- Ajoutez d'autres paramètres de configuration selon vos besoins
+
+
+print(
+	"^0======================================================================^7\n" ..
+	"^0[^4Author^0]^7 :^0 ^0K2P^7\n" ..
+	"^0[^2Download^0]^7 :^0 ^5https://github.com/K2PNOPA^7\n" ..
+	"^0[^1Discord^0]^7 :^0 ^5https://discord.gg/sp2xCDTqsG^7\n" ..
+	"^0======================================================================^7"
+)
